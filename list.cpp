@@ -116,108 +116,6 @@ Elem_t listRemove(List_t *list, long index, int *err) {
     return pos;
 }
 
-// void listLinearize(List_t *list, int *err) {
-//     CHECK(!list, LIST_NULL);
-
-//     if (list->linearized) return;
-
-//     ListElement_t *elements = (ListElement_t *) calloc((size_t) list->capacity + 1, sizeof(ListElement_t));
-//     CHECK(!elements, CANNOT_ALLOC_MEM);
-
-//     fillElemList(elements, list->capacity, err);
-
-//     long oldIndex = list->values[0].next;
-//     for (long i = 0; i < list->size; i++) {
-//         elements[i + 1].value = list->values[oldIndex].value;
-
-//         if (i + 1 >= list->size) elements[i + 1].next  = 0;
-//         else                     elements[i + 1].next  = i + 2;
-
-//         if (i == 0) elements[i + 1].previous = 0;
-//         else        elements[i + 1].previous =  i;
-
-//         oldIndex =  list->values[oldIndex].next;
-//     }
-
-//     elements[0].next = 1;
-//     elements[0].previous = list->size;
-
-//     free(list->values);
-//     list->values     = elements;
-//     list->linearized = 1;
-//     list->free       = list->size + 1;
-
-//     if (err) *err = listVerify(list);
-// }
-
-// void listResize(List_t *list, long newCapacity, int *err) {
-//     CHECK(!list, LIST_NULL);
-
-//     if (list->needLinear) {
-//         listLinearize(list, err);
-//     }
-
-//     if (newCapacity < list->capacity) {
-//         // checking if no sensible data will be deleted
-//         if (checkForPoisons(list, newCapacity, err)) {
-//             listRealloc(list, newCapacity, err);
-//             list->values[newCapacity - 1].next = 0;
-//         } else {
-//             if (err) *err = LOSING_DATA;
-//         }
-
-//         return;
-//     }
-
-//     long oldCapacity = list->capacity;
-//     listRealloc(list, newCapacity, err);
-//     poisonList (list, newCapacity, oldCapacity, err);
-// }
-
-// int checkForPoisons(List_t *list, long newCapacity, int *err) {
-//      CHECK(!list, LIST_NULL);
-
-//      long goodCounter = 0;
-//      for (long i = list->capacity - 1; i > 0; i--) {
-//         if (list->values[i].value == POISON) {
-//             goodCounter++;
-//         }
-
-//         if (goodCounter >  list->capacity - newCapacity) return 1;
-//      }  
-
-//      return 0; 
-// }
-
-// void listRealloc(List_t *list, long newCapacity, int *err) {
-//     CHECK(!list, LIST_NULL);
-//     CHECK(!list->values, LIST_DATA_NULL);
-
-//     list->values = (ListElement_t *) realloc(list->values, (size_t) newCapacity * sizeof(ListElement_t));
-//     CHECK(!list->values, CANNOT_ALLOC_MEM);
-
-//     list->capacity = newCapacity;
-// }
-
-// void poisonList(List_t *list, long newCapacity, long oldCapacity, int *err) {
-//     CHECK(!list, LIST_NULL);
-//     CHECK(!list->values, LIST_DATA_NULL);
-//     CHECK(newCapacity < oldCapacity, INDEX_INCORRECT);
-
-//     list->values[list->free].next =  oldCapacity;
-
-//     for (long i = oldCapacity; i < newCapacity; i++) {
-//         list->values[i].value    = POISON;
-//         list->values[i].previous = -1;
-
-//         if (i == newCapacity - 1) {
-//             list->values[i].next = 0;
-//         } else {
-//             list->values[i].next =  i + 1;
-//         }
-//     }
-// }
-
 void listDtor(List_t *list, int *err) {
     CHECK(!list, LIST_NULL);
 
@@ -231,102 +129,86 @@ void listDtor(List_t *list, int *err) {
     list->size       = POISON;
 }
 
-// void visualGraph(List_t *list, const char *action) {
-//     if (!list) return;
+void visualGraph(List_t *list, const char *action) {
+    if (!list) return;
 
-//     FILE *tempFile = fopen("temp.dot", "w");
-//     if (!tempFile) return;
+    FILE *tempFile = fopen("temp.dot", "w");
+    if (!tempFile) return;
 
-//     mprintf(tempFile, "digraph structs {\n");
-//     mprintf(tempFile, "\trankdir=LR;\n");
+    mprintf(tempFile, "digraph structs {\n");
+    mprintf(tempFile, "\trankdir=LR;\n");
 
-//     mprintf(
-//                 tempFile, 
-//                 "\tinfo[shape=record, style=\"rounded, filled\", fillcolor=\"#d0d1f2\", label=\"{{free: %ld} | \
-//                     {size: %ld | cap: %ld} | {linearized: %d |needLinear: %d} }\"];\n", 
-//                 list->free,
-//                 list->size,
-//                 list->capacity,
-//                 list->linearized,
-//                 list->needLinear
-//             );
+    ListElement_t *index = list->zero;
+    for (long i = 0; i < list->size + 1; i++) {
+        char color[MAX_COMMAND_LENGTH];
+        if (index == list->zero) {
+            strcpy(color, NULL_BLOCK);
+        } else {
+            strcpy(color, WORK_BLOCK);
+        }
 
-//     for (long i = 0; i < list->capacity; i++) {
-//         char color[MAX_COMMAND_LENGTH];
-//         if (i == 0) {
-//             strcpy(color, NULL_BLOCK);
-//         } else if (list->values[i].value == POISON) {
-//             strcpy(color, FREE_BLOCK);
-//         } else {
-//             strcpy(color, WORK_BLOCK);
-//         }
+        mprintf(
+                    tempFile, 
+                    "\tlabel%p[shape=record, style=\"rounded, filled\", fillcolor=\"%s\", label=\"{ {index: %ld | addr: %p} | val: %d | {n: %p | p: %p} }\"];\n", 
+                    index, 
+                    color,
+                    i,
+                    index,
+                    index->value, 
+                    index->next,
+                    index->previous
+                );
 
-//         mprintf(
-//                     tempFile, 
-//                     "\tlabel%ld[shape=record, style=\"rounded, filled\", fillcolor=\"%s\", label=\"{index: %ld | val: %d | {n: %ld | p: %ld} }\"];\n", 
-//                     i, 
-//                     color,
-//                     i,
-//                     list->values[i].value, 
-//                     list->values[i].next,
-//                     list->values[i].previous
-//                 );
-//     }
+        index = index->next;
+    }
 
-//     for (long i = 0; i < list->capacity - 1; i++) {
-//         mprintf(tempFile, "\tlabel%ld->label%ld [color=\"%s\", style=\"dashed\",arrowhead=\"none\"]", i, i + 1, PHYS_LINK);
-//     }
+    index = list->zero;
+    for (long i = 0; i < list->size + 1; i++) {
+        ListElement_t *nextIndex =  index->next;
+        if (nextIndex == list->zero) break;
 
-//     // from 0 to 0
-//     mprintf(tempFile, "\tlabel0->label0 [dir=both, color=\"red:blue\"]\n");
+        mprintf(tempFile, "\tlabel%p->label%p [color=\"%s\", style=\"dashed\",arrowhead=\"none\"]", index, nextIndex, PHYS_LINK);
 
-//     long index = list->values[0].next;
-//     for (long i = 0; i < list->size; i++) {
-//         long nextIndex =  list->values[index].next;
-//         long prevIndex =  list->values[index].previous;
-//         if (nextIndex == 0) break;
+        index = nextIndex;
+    }
 
-//         mprintf(tempFile, "\tlabel%ld->label%ld [color=\"red\"]\n", index, nextIndex);
-//         if (prevIndex) mprintf(tempFile, "\tlabel%ld->label%ld [color=\"blue\"]\n", index, prevIndex);
-//         index = nextIndex;
-//     }
+    index = list->zero->next;
+    for (long i = 0; i < list->size + 1; i++) {
+        ListElement_t *nextIndex =  index->next;
+        ListElement_t *prevIndex =  index->previous;
 
-//     mprintf(tempFile, "\tlabel%ld->label%ld [color=\"blue\"]\n", list->values[0].previous, list->values[list->values[0].previous].previous);
+        mprintf(tempFile, "\tlabel%p->label%p [color=\"red\"]\n", index, nextIndex);
+        if (prevIndex) mprintf(tempFile, "\tlabel%p->label%p [color=\"blue\"]\n", index, prevIndex);
+        index = nextIndex;
+    }
 
-//     index = list->free;
-//     for (long i = 0; i < list->capacity - list->size; i++) {
-//         long nextIndex =  list->values[index].next;
-//         if (nextIndex == 0) break;
+    //mprintf(tempFile, "\tlabel%ld->label%ld [color=\"blue\"]\n", list->values[0].previous, list->values[list->values[0].previous].previous);
 
-//         mprintf(tempFile, "\tlabel%ld->label%ld [color=\"#038c61\"]\n", index, nextIndex);
-//         index = nextIndex;
-//     }
+    mprintf(tempFile, "}");
 
-//     mprintf(tempFile, "}");
+    fclose(tempFile);
 
-//     fclose(tempFile);
+    char command[MAX_COMMAND_LENGTH] = {};
+    sprintf(command, "dot -Tsvg temp.dot > img%ld.svg", grDumpCounter);
+    system(command);
 
-//     char command[MAX_COMMAND_LENGTH] = {};
-//     sprintf(command, "dot -Tsvg temp.dot > img%ld.svg", grDumpCounter);
-//     system(command);
+    // adding to html
+    FILE* graphFile = nullptr;
+    if (grDumpCounter == 0) {
+        graphFile = fopen("gdump.html", "w");
+    } else {
+        graphFile = fopen("gdump.html", "a");
+    }
+    if (!graphFile) return;
 
-//     // adding to html
-//     FILE* graphFile = nullptr;
-//     if (grDumpCounter == 0) {
-//         graphFile = fopen("gdump.html", "w");
-//     } else {
-//         graphFile = fopen("gdump.html", "a");
-//     }
-//     if (!graphFile) return;
+    fprintf(graphFile, "<pre>\n");
+    fprintf(graphFile, "<hr>\n<h2>%s </h2>\n", action);
+    fprintf(graphFile, "<img src=\"img%ld.svg\" />\n</hr>\n", grDumpCounter);
 
-//     fprintf(graphFile, "<pre>\n");
-//     fprintf(graphFile, "<hr>\n<h2>%s </h2>\n", action);
-//     fprintf(graphFile, "<img src=\"img%ld.svg\" />\n</hr>\n", grDumpCounter);
+    fclose(graphFile);
 
-//     fclose(graphFile);
-
-//     grDumpCounter++;
-// }
+    grDumpCounter++;
+}
 
 #if _DEBUG
 void mprintf(FILE *file, const char *fmt...) {

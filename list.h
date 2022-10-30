@@ -113,12 +113,6 @@ Elem_t listRemove(List_t *list, long index, int *err = nullptr);
 
 [[nodiscard]] ListElement_t* logicToPhysics(List_t *list, long logicIndex, int *err = nullptr);
 
-void listLinearize(List_t *list, int *err = nullptr);
-
-int checkForPoisons(List_t *list, long newCapacity, int *err = nullptr);
-
-void poisonList(List_t *list, long newCapacity, long oldCapacity, int *err = nullptr);
-
 void listDtor(List_t *list, int *err = nullptr);
 
 void visualGraph(List_t *list, const char *action = "");

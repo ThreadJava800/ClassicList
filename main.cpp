@@ -23,6 +23,8 @@ int main() {
 
     DUMP(&list, 9);
 
+    visualGraph(&list, "Hello");
+
     listDtor(&list, &err);
 
     return 0;
