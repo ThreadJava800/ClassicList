@@ -1,36 +1,22 @@
 Assertion failed with code 0
 in int main() at main.cpp(12)
-List_t[0x7fff0bd73de0] '&list' at int main() at main.cpp(11)
+List_t[0x7ffd8c54fd10] '&list' at int main() at main.cpp(11)
 	size = 0
-	linearized = 1
 Values:
-	    48879 (0x55d23502b090)
+	    48879 (0x557bbcc98090)
 Next:
-	           0x55d23502b090 
+	           0x557bbcc98090 
 Previous:
-	           0x55d23502b090 
+	           0x557bbcc98090 
 
-Assertion failed with code 0
-in int main() at main.cpp(15)
-List_t[0x7fff0bd73de0] '&list' at int main() at main.cpp(11)
-	size = 1
-	linearized = 1
+Assertion failed with code 9
+in int main() at main.cpp(24)
+List_t[0x7ffd8c54fd10] '&list' at int main() at main.cpp(11)
+	size = 6
 Values:
-	    48879 (0x55d23502b090)        5 (0x55d23502c0c0)
+	    48879 (0x557bbcc98090)        9 (0x557bbcc99140)        5 (0x557bbcc990c0)        6 (0x557bbcc990e0)       11 (0x557bbcc99570)        7 (0x557bbcc99100)        8 (0x557bbcc99120)
 Next:
-	           0x55d23502c0c0            0x55d23502b090 
+	           0x557bbcc99140            0x557bbcc990c0            0x557bbcc990e0            0x557bbcc99570            0x557bbcc99100            0x557bbcc99120            0x557bbcc98090 
 Previous:
-	           0x55d23502c0c0            0x55d23502b090 
-
-Assertion failed with code 0
-in int main() at main.cpp(18)
-List_t[0x7fff0bd73de0] '&list' at int main() at main.cpp(11)
-	size = 2
-	linearized = 1
-Values:
-	    48879 (0x55d23502b090)        5 (0x55d23502c0c0)        5 (0x55d23502c0e0)
-Next:
-	           0x55d23502c0c0            0x55d23502c0e0            0x55d23502b090 
-Previous:
-	           0x55d23502c0e0            0x55d23502b090            0x55d23502c0c0 
+	           0x557bbcc99120            0x557bbcc98090            0x557bbcc99140            0x557bbcc990c0            0x557bbcc990e0            0x557bbcc99570            0x557bbcc99100 
 

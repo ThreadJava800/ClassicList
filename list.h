@@ -59,26 +59,23 @@ struct ListDebug_t {
 #endif
 
 struct List_t {
-    ListElement_t *zero        = nullptr;
-
-    long        size           = POISON;
-
-    short         linearized   = 1;
-    short         needLinear   = 1;
+    ListElement_t *zero    = nullptr;
+    long           size    = POISON;
 
     #if _DEBUG
-    ListDebug_t debugInfo = {};
+    ListDebug_t debugInfo  = {};
     #endif
 };
 
 #define CHECK(expression, errCode) { \
     if (expression) {                 \
+        DUMP(list, errCode);           \
         if (err) *err = errCode;        \
         exit(errCode);                   \
     }                                     \
 }                                          \
 
-void _listCtor(List_t *list, short needLinear, int *err = nullptr);
+void _listCtor(List_t *list, int *err = nullptr);
 
 #if _DEBUG
 

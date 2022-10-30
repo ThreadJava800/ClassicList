@@ -8,7 +8,7 @@ int   onClose = atexit(closeLogfile);
 
 long grDumpCounter = 0;
 
-void _listCtor(List_t *list, short needLinear, int *err) {
+void _listCtor(List_t *list, int *err) {
     CHECK(!list, LIST_NULL);
 
     list->zero = (ListElement_t*) calloc(1, sizeof(ListElement_t));
@@ -18,7 +18,6 @@ void _listCtor(List_t *list, short needLinear, int *err) {
     list->zero->next     = list->zero;
     list->zero->previous = list->zero;
 
-    list->needLinear = needLinear;
     list->size       = 0;
 
     if (err) *err = listVerify(list);
@@ -36,10 +35,6 @@ int listVerify(List_t *list) {
 ListElement_t* _listInsertPhys(List_t *list, Elem_t value, ListElement_t *index, int *err) {
     CHECK(!list, LIST_NULL);
 
-    if (index != list->zero->previous) {
-        list->linearized = 0;
-    }
-
     ListElement_t *pushInd  = (ListElement_t *) calloc(1, sizeof(ListElement_t));
 
     pushInd->value     = value;
@@ -55,82 +50,71 @@ ListElement_t* _listInsertPhys(List_t *list, Elem_t value, ListElement_t *index,
     return pushInd;
 }
 
-// ListElement_t* listInsert(List_t *list, Elem_t value, long index, int *err) {
-//     CHECK(!list, LIST_NULL);
-//     CHECK(index > list->capacity, INDEX_BIGGER_SIZE);
+ListElement_t* listInsert(List_t *list, Elem_t value, long index, int *err) {
+    CHECK(!list, LIST_NULL);
+    CHECK(index > list->size, INDEX_BIGGER_SIZE);
 
-//     long physIndex = logicToPhysics(list, index);
-//     return _listInsertPhys(list, value, physIndex, err);
-// }
+    ListElement_t *physIndex = logicToPhysics(list, index);
+    return _listInsertPhys(list, value, physIndex, err);
+}
 
-// ListElement_t* listPushBack(List_t *list, Elem_t value, int *err) {
-//     CHECK(!list, LIST_NULL);
+ListElement_t* listPushBack(List_t *list, Elem_t value, int *err) {
+    CHECK(!list, LIST_NULL);
 
-//     long lastInd = list->values[0].previous;
-//     return _listInsertPhys(list, value, lastInd, err);
-// }
+    ListElement_t *lastInd = list->zero->previous;
+    return _listInsertPhys(list, value, lastInd, err);
+}
 
-// ListElement_t* listPushFront(List_t *list, Elem_t value, int *err) {
-//     CHECK(!list, LIST_NULL);
+ListElement_t* listPushFront(List_t *list, Elem_t value, int *err) {
+    CHECK(!list, LIST_NULL);
 
-//     return _listInsertPhys(list, value, 0, err);
-// }
+    return _listInsertPhys(list, value, list->zero, err);
+}
 
-// Elem_t _listRemovePhys(List_t *list, ListElement_t *index, int *err) {
-//     CHECK(!list, LIST_NULL);
-//     CHECK(index > list->capacity || index <= 0, INDEX_BIGGER_SIZE);
-//     CHECK(list->size == 0, NOTHING_TO_DELETE);
-//     CHECK(list->values[index].value == POISON, ALREADY_POISON);
+Elem_t _listRemovePhys(List_t *list, ListElement_t *index, int *err) {
+    CHECK(!list, LIST_NULL);
+    CHECK(list->size == 0, NOTHING_TO_DELETE);
 
-//     if (index != list->values[0].previous) {
-//         list->linearized = 0;
-//     }
+    Elem_t returnValue = index->value;
 
-//     Elem_t returnValue = list->values[index].value;
+    index->value = POISON;
 
-//     list->values[index].value = POISON;
+    index->previous->next     = index->next;
+    index->next->previous = index->previous;
+    free(index);
 
-//     list->values[list->values[index].previous].next     = list->values[index].next;
-//     list->values[list->values[index].next]    .previous = list->values[index].previous;
-//     list->values[index]                       .next     = list->free;
-//     list->values[index]                       .next     = list->free;
-//     list->values[index]                       .previous = -1;
+    list->size--;
 
-//     list->size--;
-//     list->free = index;
+    return returnValue;
+}
 
-//     return returnValue;
-// }
+Elem_t listRemove(List_t *list, long index, int *err) {
+    CHECK(!list, LIST_NULL);
+    CHECK(index > list->size, INDEX_BIGGER_SIZE);
+    CHECK(list->size == 0, NOTHING_TO_DELETE);
 
-// Elem_t listRemove(List_t *list, long index, int *err) {
-//     CHECK(!list, LIST_NULL);
-//     CHECK(index > list->capacity, INDEX_BIGGER_SIZE);
-//     CHECK(list->size == 0, NOTHING_TO_DELETE);
+    ListElement_t *physIndex = logicToPhysics(list, index);
+    return _listRemovePhys(list, physIndex, err);
+}
 
-//     long physIndex = logicToPhysics(list, index);
-//     return _listRemovePhys(list, physIndex, err);
-// }
+[[nodiscard]] ListElement_t *logicToPhysics(List_t *list, long logicIndex, int *err) {
+    CHECK(!list, LIST_NULL);
+    CHECK(logicIndex > list->size, INDEX_INCORRECT);
 
-// [[nodiscard]] ListElement_t *logicToPhysics(List_t *list, long logicIndex, int *err) {
-//     CHECK(!list, LIST_NULL);
-//     CHECK(logicIndex > list->capacity, INDEX_INCORRECT);
+    if (list->size == 0) return list->zero;
 
-//     if (list->size == 0) return 0;
+    ListElement_t *pos = list->zero->next;
+    if (logicIndex == 0) return pos;
 
-//     long pos = list->values[0].next;
-//     if (logicIndex == 0) return pos;
+    for (long i = 0; i < logicIndex; i++) {
+        if (pos->next == list->zero) {
+            return pos;
+        }
+        pos = pos->next;
+    }
 
-//     if (list->linearized) return logicIndex;
-
-//     for (long i = 0; i < logicIndex; i++) {
-//         if (list->values[pos].next == 0) {
-//             return pos;
-//         }
-//         pos =  list->values[pos].next;
-//     }
-
-//     return pos;
-// }
+    return pos;
+}
 
 // void listLinearize(List_t *list, int *err) {
 //     CHECK(!list, LIST_NULL);
@@ -245,7 +229,6 @@ void listDtor(List_t *list, int *err) {
     }
 
     list->size       = POISON;
-    list->linearized = 1;
 }
 
 // void visualGraph(List_t *list, const char *action) {
@@ -362,7 +345,6 @@ void dumpList(List_t *list, int errorCode, const char *fileName, const char *fun
 
     mprintf(logFile, "List_t[%p] '%s' at %s at %s(%d)\n", list, list->debugInfo.name, list->debugInfo.createFunc, list->debugInfo.createFile, list->debugInfo.createLine);
     mprintf(logFile, "\tsize = %ld\n", list->size);
-    mprintf(logFile, "\tlinearized = %d\n", list->linearized);
 
     if (!list->zero) {
         mprintf(logFile, "Values are null\n");

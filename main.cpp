@@ -8,14 +8,20 @@ size_t MAX_LIST_LENGTH = 256;
 int main() {
     List_t list = {};
     int err = 0;
-    listCtor(&list, 1, &err);
+    listCtor(&list, &err);
     DUMP(&list, 0);
 
-    ListElement_t *next = _listInsertPhys(&list, 5, list.zero);
-    DUMP(&list, 0);
+    listPushBack(&list, 5);
+    listPushBack(&list, 6);
+    listPushBack(&list, 7);
+    listPushBack(&list, 8);
 
-    _listInsertPhys(&list, 5, next);
-    DUMP(&list, 0);
+    listPushFront(&list, 9);
+
+    printf("%p", logicToPhysics(&list, 2));
+    listInsert(&list, 11, 2);
+
+    DUMP(&list, 9);
 
     listDtor(&list, &err);
 
