@@ -41,6 +41,7 @@ enum ListErrors {
     ALREADY_POISON        = -15,
     LOSING_DATA           = -16,
     CANNOT_OPEN_FILE      = -17,
+    INDEX_NULL            = -18,
 };
 
 struct ListElement_t {

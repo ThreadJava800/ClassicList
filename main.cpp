@@ -9,21 +9,34 @@ int main() {
     List_t list = {};
     int err = 0;
     listCtor(&list, &err);
-    DUMP(&list, 0);
+    visualGraph(&list, "Initialize list");
 
     listPushBack(&list, 5);
-    listPushBack(&list, 6);
-    listPushBack(&list, 7);
-    listPushBack(&list, 8);
+    visualGraph(&list, "Push back 5");
 
-    listPushFront(&list, 9);
+    ListElement_t *sixInd = listPushFront(&list, 6);
+    visualGraph(&list, "Push front 6");
 
-    printf("%p", logicToPhysics(&list, 2));
-    listInsert(&list, 11, 2);
+    listPushFront(&list, 7);
+    visualGraph(&list, "Push front 7");
 
-    DUMP(&list, 9);
+    ListElement_t *eightInd = listPushFront(&list, 8);
+    visualGraph(&list, "Push front 8");
 
-    visualGraph(&list, "Hello");
+    listInsert(&list, 1, 2);
+    visualGraph(&list, "Insert 1 on second position (logical)");
+
+    listRemove(&list, 4);
+    visualGraph(&list, "Remove 4 (logical postion)");
+
+    listRemove(&list, 1);
+    visualGraph(&list, "Remove 1 (logical postion)");
+
+    _listRemovePhys(&list, eightInd);
+    visualGraph(&list, "Remove 8 (from phys position)");
+
+    _listInsertPhys(&list, 200, sixInd);
+    visualGraph(&list, "Push 200 after 6 (phys position)");
 
     listDtor(&list, &err);
 

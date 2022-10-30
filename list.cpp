@@ -34,6 +34,7 @@ int listVerify(List_t *list) {
 
 ListElement_t* _listInsertPhys(List_t *list, Elem_t value, ListElement_t *index, int *err) {
     CHECK(!list, LIST_NULL);
+    CHECK(!index, INDEX_NULL);
 
     ListElement_t *pushInd  = (ListElement_t *) calloc(1, sizeof(ListElement_t));
 
@@ -73,6 +74,7 @@ ListElement_t* listPushFront(List_t *list, Elem_t value, int *err) {
 
 Elem_t _listRemovePhys(List_t *list, ListElement_t *index, int *err) {
     CHECK(!list, LIST_NULL);
+    CHECK(!index, INDEX_NULL);
     CHECK(list->size == 0, NOTHING_TO_DELETE);
 
     Elem_t returnValue = index->value;
@@ -132,7 +134,7 @@ void listDtor(List_t *list, int *err) {
 void visualGraph(List_t *list, const char *action) {
     if (!list) return;
 
-    FILE *tempFile = fopen("temp.dot", "w");
+    FILE *tempFile = fopen("graph/temp.dot", "w");
     if (!tempFile) return;
 
     mprintf(tempFile, "digraph structs {\n");
@@ -182,27 +184,26 @@ void visualGraph(List_t *list, const char *action) {
         index = nextIndex;
     }
 
-    //mprintf(tempFile, "\tlabel%ld->label%ld [color=\"blue\"]\n", list->values[0].previous, list->values[list->values[0].previous].previous);
-
     mprintf(tempFile, "}");
 
     fclose(tempFile);
 
     char command[MAX_COMMAND_LENGTH] = {};
-    sprintf(command, "dot -Tsvg temp.dot > img%ld.svg", grDumpCounter);
+    sprintf(command, "dot -Tsvg graph/temp.dot > graph/img%ld.svg", grDumpCounter);
     system(command);
 
     // adding to html
     FILE* graphFile = nullptr;
     if (grDumpCounter == 0) {
-        graphFile = fopen("gdump.html", "w");
+        graphFile = fopen("graph/gdump.html", "w");
     } else {
-        graphFile = fopen("gdump.html", "a");
+        graphFile = fopen("graph/gdump.html", "a");
     }
     if (!graphFile) return;
 
     fprintf(graphFile, "<pre>\n");
     fprintf(graphFile, "<hr>\n<h2>%s </h2>\n", action);
+    fprintf(graphFile, "<h3>List size: %ld</h3>\n", list->size);
     fprintf(graphFile, "<img src=\"img%ld.svg\" />\n</hr>\n", grDumpCounter);
 
     fclose(graphFile);
