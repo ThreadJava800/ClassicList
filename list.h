@@ -102,6 +102,8 @@ int listVerify(List_t *list);
 
 ListElement_t* _listInsertPhys(List_t *list, Elem_t value, ListElement_t *index, int *err = nullptr);
 
+ListElement_t* elementNew(Elem_t value, ListElement_t* next, ListElement_t* prev, int *err = nullptr);
+
 ListElement_t* listInsert(List_t *list, Elem_t value, long index, int *err = nullptr);
 
 ListElement_t* listPushBack(List_t *list, Elem_t value, int *err = nullptr);
@@ -109,6 +111,8 @@ ListElement_t* listPushBack(List_t *list, Elem_t value, int *err = nullptr);
 ListElement_t* listPushFront(List_t *list, Elem_t value, int *err = nullptr);
 
 Elem_t _listRemovePhys(List_t *list, ListElement_t *index, int *err = nullptr);
+
+void elementDelete(ListElement_t* element, int *err = nullptr);
 
 Elem_t listRemove(List_t *list, long index, int *err = nullptr);
 

@@ -36,11 +36,7 @@ ListElement_t* _listInsertPhys(List_t *list, Elem_t value, ListElement_t *index,
     CHECK(!list, LIST_NULL);
     CHECK(!index, INDEX_NULL);
 
-    ListElement_t *pushInd  = (ListElement_t *) calloc(1, sizeof(ListElement_t));
-
-    pushInd->value     = value;
-    pushInd->next      = index->next;
-    pushInd->previous  = index;
+    ListElement_t *pushInd  = elementNew(value, index->next, index, err);
 
     index->next->previous = pushInd;
     index->next           = pushInd;
@@ -49,6 +45,21 @@ ListElement_t* _listInsertPhys(List_t *list, Elem_t value, ListElement_t *index,
     if (err) *err = listVerify(list);
 
     return pushInd;
+}
+
+ListElement_t* elementNew(Elem_t value, ListElement_t* next, ListElement_t* prev, int *err) {
+    if (!next || !prev) {
+        if (err) *err = INDEX_NULL;
+        return nullptr;
+    }
+
+    ListElement_t *newElem  = (ListElement_t *) calloc(1, sizeof(ListElement_t));
+
+    newElem->value    = value;
+    newElem->next     = next;
+    newElem->previous = prev;
+
+    return newElem;
 }
 
 ListElement_t* listInsert(List_t *list, Elem_t value, long index, int *err) {
@@ -79,15 +90,22 @@ Elem_t _listRemovePhys(List_t *list, ListElement_t *index, int *err) {
 
     Elem_t returnValue = index->value;
 
-    index->value = POISON;
-
-    index->previous->next     = index->next;
+    index->previous->next = index->next;
     index->next->previous = index->previous;
-    free(index);
+    elementDelete(index, err);
 
     list->size--;
 
     return returnValue;
+}
+
+void elementDelete(ListElement_t* element, int *err) {
+    if (!element) {
+        if (err) *err = INDEX_NULL;
+        return;
+    }
+
+    free(element);
 }
 
 Elem_t listRemove(List_t *list, long index, int *err) {
