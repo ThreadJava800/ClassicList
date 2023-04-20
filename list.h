@@ -8,13 +8,22 @@
 #include <math.h>
 #include <string.h>
 
+#define _DEBUG 0
+
 #ifndef _DEBUG
 #define _DEBUG 0
 #endif
 
-typedef int Elem_t;
+#define MAKE_CHECKS 0
 
-const Elem_t POISON = 0xBEEF;
+struct Pair_t {
+    const char *key   = nullptr;
+    const char *value = nullptr;
+};
+
+typedef Pair_t Elem_t;
+
+const Elem_t POISON = {};
 
 const int RESIZE_COEFFICIENT = 2;
 
@@ -61,13 +70,14 @@ struct ListDebug_t {
 
 struct List_t {
     ListElement_t *zero    = nullptr;
-    long           size    = POISON;
+    long           size    = 0xBEEF;
 
     #if _DEBUG
     ListDebug_t debugInfo  = {};
     #endif
 };
 
+#if MAKE_CHECKS
 #define CHECK(expression, errCode) { \
     if (expression) {                 \
         DUMP(list, errCode);           \
@@ -75,6 +85,10 @@ struct List_t {
         exit(errCode);                   \
     }                                     \
 }                                          \
+
+#else
+#define CHECK(expression, errCode) {}
+#endif
 
 void _listCtor(List_t *list, int *err = nullptr);
 
@@ -114,6 +128,8 @@ Elem_t _listRemovePhys(List_t *list, ListElement_t *index, int *err = nullptr);
 
 void elementDelete(ListElement_t* element, int *err = nullptr);
 
+Elem_t listGet(List_t *list, long index, int *err = nullptr);
+
 Elem_t listRemove(List_t *list, long index, int *err = nullptr);
 
 [[nodiscard]] ListElement_t* logicToPhysics(List_t *list, long logicIndex, int *err = nullptr);
@@ -122,10 +138,9 @@ void listDtor(List_t *list, int *err = nullptr);
 
 void visualGraph(List_t *list, const char *action = "");
 
+void mprintf(FILE *file, const char *fmt...);
+
 #if _DEBUG
-
-    void mprintf(FILE *file, const char *fmt...);
-
     void dumpList(List_t *list, int errorCode, const char *fileName, const char *function, int line);
 
     #define DUMP(list, errorCode) {                                                 \

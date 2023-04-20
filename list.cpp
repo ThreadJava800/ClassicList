@@ -26,7 +26,7 @@ void _listCtor(List_t *list, int *err) {
 int listVerify(List_t *list) {
     if (!list)                          return LIST_NULL;
     if (!list->zero)                    return LIST_DATA_NULL;
-    if (list->size == POISON)           return LIST_SIZE_POISONED;
+    if (list->size == 0xBEEF)           return LIST_SIZE_POISONED;
     if (list->size < 0)                 return LIST_SIZE_POISONED;
 
     return LIST_OK;
@@ -108,6 +108,15 @@ void elementDelete(ListElement_t* element, int *err) {
     free(element);
 }
 
+Elem_t listGet(List_t *list, long index, int *err) {
+    CHECK(!list, LIST_NULL);
+    CHECK(index > list->size, INDEX_BIGGER_SIZE);
+    CHECK(list->size == 0, NOTHING_TO_DELETE);
+
+    ListElement_t *physIndex = logicToPhysics(list, index);
+    return physIndex->value;
+}
+
 Elem_t listRemove(List_t *list, long index, int *err) {
     CHECK(!list, LIST_NULL);
     CHECK(index > list->size, INDEX_BIGGER_SIZE);
@@ -146,7 +155,7 @@ void listDtor(List_t *list, int *err) {
         ind = nextInd;
     }
 
-    list->size       = POISON;
+    list->size       = 0xBEEF;
 }
 
 void visualGraph(List_t *list, const char *action) {
@@ -229,13 +238,13 @@ void visualGraph(List_t *list, const char *action) {
     grDumpCounter++;
 }
 
-#if _DEBUG
 void mprintf(FILE *file, const char *fmt...) {
     va_list args;
     va_start(args, fmt);
     vfprintf(file, fmt, args);
 }
 
+#if _DEBUG
 void dumpList(List_t *list, int errorCode, const char *fileName, const char *function, int line) {
     mprintf(logFile, "Assertion failed with code %d\n", errorCode);
     mprintf(logFile, "in %s at %s(%d)\n", function, fileName, line);
